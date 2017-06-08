@@ -1,2 +1,2 @@
 # Typhoon
-Typhoon is A very simple, fast, platform independent web server built for concurrency.
+Typhoon is a very simple, fast, platform independent web server built for concurrency.
