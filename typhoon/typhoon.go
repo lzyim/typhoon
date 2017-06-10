@@ -24,23 +24,37 @@ func Run() {
 }
 
 func handleConn(conn net.Conn) {
+	var path []byte
+	get := false
 	reader := bufio.NewReader(conn)
 	writer := bufio.NewWriter(conn)
 	defer conn.Close()
 	for {
 		if line, _, err := reader.ReadLine(); err == nil {
+			if bytes.Equal(line, make([]byte, 0, 0)) {
+				if get {
+					parseReq(path, writer)
+					get = false
+				} else {
+					return
+				}
+			}
 			requestLine := bytes.Split(line, []byte(" "))
 			if bytes.Equal(requestLine[0], []byte("GET")) {
-				path := parseUri(requestLine[1])
-				if isStatic(path[len(path)-1]) {
-					serveStatic(requestLine[1], writer)
-				} else {
-					serveDynamic(requestLine[1], writer)
-				}
+				get = true
+				path = requestLine[1]
 			}
 		} else {
 			return
 		}
+	}
+}
+
+func parseReq(uri []byte, writer *bufio.Writer) {
+	if isStatic(uri) {
+		serveStatic(uri, writer)
+	} else {
+		serveDynamic(uri, writer)
 	}
 }
 
@@ -56,8 +70,10 @@ func getArgs(path []byte) ([][]byte, bool) {
 	return args, true
 }
 
-func isStatic(filename []byte) bool {
+func isStatic(uri []byte) bool {
 	isStatic := false
+	path := parseUri(uri)
+	filename := path[len(path)-1]
 	ext := bytes.Split(filename, []byte("."))
 	if len(ext) < 2 {
 		return isStatic
