@@ -12,7 +12,8 @@ import (
 )
 
 func Run() {
-	ln, _ := net.Listen("tcp", ":8080")
+	config := &Config{HttpPort}
+	ln, _ := net.Listen("tcp", fmt.Sprintf(":%d", config.Port))
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
